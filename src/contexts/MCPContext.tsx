@@ -23,6 +23,7 @@ interface MCPContextType {
     client: Client | null;
     status: 'disconnected' | 'connecting' | 'connected' | 'error';
     error: string | null;
+    isAuthRequired: boolean;
     logs: LogEntry[];
     clearLogs: () => void;
     activeServerId: string | null;
@@ -31,6 +32,7 @@ interface MCPContextType {
     updateServer: (server: ServerConfig) => void;
     removeServer: (id: string) => void;
     connectToServer: (id: string) => Promise<void>;
+    reauthenticateServer: (id: string) => Promise<void>;
     disconnect: () => Promise<void>;
 }
 
@@ -47,6 +49,7 @@ export const useMCP = () => {
 export const MCPProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const [status, setStatus] = useState<'disconnected' | 'connecting' | 'connected' | 'error'>('disconnected');
     const [error, setError] = useState<string | null>(null);
+    const [isAuthRequired, setIsAuthRequired] = useState(false);
     const [logs, setLogs] = useState<LogEntry[]>([]);
     const clientRef = useRef<Client | null>(null);
 
@@ -90,6 +93,7 @@ export const MCPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         }
         setStatus('disconnected');
         setError(null);
+        setIsAuthRequired(false);
         setActiveServerId(null);
     }, []);
 
@@ -134,6 +138,13 @@ export const MCPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
                 console.log("[MCPContext] Adding log entry:", entry.type, entry.method);
                 setLogs(prev => [...prev, entry]);
             });
+
+            // Handle unauthorized
+            (inspectableTransport as any).onUnauthorized = () => {
+                console.warn("[MCPContext] Transport reported 401. Marking auth as required.");
+                setIsAuthRequired(true);
+                setError("Authentication expired. Please re-authenticate.");
+            };
 
             const client = new Client(
                 {
@@ -184,6 +195,34 @@ export const MCPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         }
     }, [disconnect, servers]);
 
+    const reauthenticateServer = useCallback(async (id: string) => {
+        const config = servers.find(s => s.id === id);
+        if (!config || config.auth?.type !== 'oauth') return;
+
+        try {
+            const { initiateOAuthFlow } = await import('@/lib/oauth');
+            const token = await initiateOAuthFlow({
+                authUrl: config.auth.authUrl!,
+                tokenUrl: config.auth.tokenUrl!,
+                clientId: config.auth.clientId || 'mcp-workbench',
+                clientSecret: config.auth.clientSecret,
+                scope: config.auth.scope,
+            });
+
+            const updatedServer = {
+                ...config,
+                auth: { ...config.auth, token }
+            };
+            updateServer(updatedServer);
+
+            // Reconnect automatically
+            await connectToServer(id);
+        } catch (e: any) {
+            console.error("Re-authentication failed", e);
+            setError("Re-authentication failed: " + e.message);
+        }
+    }, [servers, updateServer, connectToServer]);
+
     return (
         <MCPContext.Provider value={{
             client: clientRef.current,
@@ -191,12 +230,14 @@ export const MCPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             error,
             logs,
             clearLogs,
+            isAuthRequired,
             activeServerId,
             servers,
             addServer,
             updateServer,
             removeServer,
             connectToServer,
+            reauthenticateServer,
             disconnect
         }}>
             {children}

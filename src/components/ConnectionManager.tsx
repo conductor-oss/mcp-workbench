@@ -19,7 +19,7 @@ import { ServerEditor } from './ServerEditor';
 import { Trash2, Edit2, Plus } from 'lucide-react';
 
 export const ConnectionManager: React.FC = () => {
-    const { status, error, servers, activeServerId, connectToServer, disconnect, addServer, updateServer, removeServer } = useMCP();
+    const { status, error, isAuthRequired, servers, activeServerId, connectToServer, reauthenticateServer, disconnect, addServer, updateServer, removeServer } = useMCP();
     const [editingServer, setEditingServer] = useState<ServerConfig | null>(null);
     const [isCreating, setIsCreating] = useState(false);
 
@@ -85,6 +85,19 @@ export const ConnectionManager: React.FC = () => {
                                 ? (status === 'connected' ? 'Disconnect' : status === 'connecting' ? 'Connecting...' : 'Connect')
                                 : 'Connect'}
                         </Button>
+
+                        {activeServerId === server.id && isAuthRequired && server.auth?.type === 'oauth' && (
+                            <Button
+                                size="sm"
+                                variant="outline"
+                                className="border-solar-magenta text-solar-magenta hover:bg-solar-magenta/10 mt-1"
+                                onClick={() => {
+                                    reauthenticateServer(server.id);
+                                }}
+                            >
+                                Re-authenticate Session
+                            </Button>
+                        )}
                     </div>
                 ))}
 

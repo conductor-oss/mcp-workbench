@@ -68,62 +68,19 @@ export const ServerEditor: React.FC<ServerEditorProps> = ({ config, onSave, onCa
     };
 
     const handleOAuthFlow = async () => {
-        if (!authUrl) { alert("Missing Auth URL"); return; }
-        if (!tokenUrl) { alert("Missing Token URL"); return; }
-        // Client ID/Secret are optional (e.g. if pre-configured or public client)
-
-        const redirectUri = window.location.origin;
-        const state = crypto.randomUUID();
-        const popupUrl = new URL(authUrl);
-        popupUrl.searchParams.set('response_type', 'code');
-        // Use provided ID or default to 'mcp-workbench' to satisfy "Missing required param"
-        popupUrl.searchParams.set('client_id', clientId || 'mcp-workbench');
-        popupUrl.searchParams.set('redirect_uri', redirectUri);
-        popupUrl.searchParams.set('state', state);
-        if (scope) popupUrl.searchParams.set('scope', scope);
-
-        const popup = window.open(popupUrl.toString(), 'oauth_popup', 'width=600,height=700');
-
-        const handleMessage = async (event: MessageEvent) => {
-            if (event.origin !== window.location.origin) return;
-            if (event.data?.type === 'oauth_code') {
-                const code = event.data.code;
-                popup?.close();
-                window.removeEventListener('message', handleMessage);
-
-                // Exchange code for token
-                try {
-                    const params = new URLSearchParams();
-                    params.set('grant_type', 'authorization_code');
-                    params.set('code', code);
-                    params.set('redirect_uri', redirectUri);
-                    params.set('client_id', clientId || 'mcp-workbench');
-                    if (clientSecret) params.set('client_secret', clientSecret);
-
-                    console.log("[ServerEditor] Exchanging token with params:", params.toString());
-
-                    // Standard OAuth token exchange: POST with form body
-                    const res = await fetch(tokenUrl, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/x-www-form-urlencoded',
-                            'ngrok-skip-browser-warning': 'true'
-                        },
-                        body: params
-                    });
-                    const data = await res.json();
-                    if (data.access_token) {
-                        setAuthToken(data.access_token);
-                    } else {
-                        alert("Failed to get token: " + JSON.stringify(data));
-                    }
-                } catch (e) {
-                    alert("Error exchanging token: " + e);
-                }
-            }
-        };
-
-        window.addEventListener('message', handleMessage);
+        try {
+            const { initiateOAuthFlow } = await import('@/lib/oauth');
+            const token = await initiateOAuthFlow({
+                authUrl,
+                tokenUrl,
+                clientId: clientId || 'mcp-workbench',
+                clientSecret,
+                scope
+            });
+            setAuthToken(token);
+        } catch (e: any) {
+            alert(e.message);
+        }
     };
 
     const discoverEndpoints = async () => {

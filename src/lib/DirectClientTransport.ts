@@ -27,6 +27,7 @@ export class DirectClientTransport implements Transport {
     onclose?: () => void;
     onerror?: (error: Error) => void;
     onmessage?: (message: JSONRPCMessage) => void;
+    onUnauthorized?: () => void;
 
     constructor(url: URL, headers: Record<string, string> = {}) {
         this._url = url;
@@ -57,6 +58,13 @@ export class DirectClientTransport implements Transport {
                 headers,
                 body: JSON.stringify(message)
             });
+
+            if (response.status === 401) {
+                console.warn("[DirectClientTransport] 401 Unauthorized detected.");
+                if (this.onUnauthorized) {
+                    this.onUnauthorized();
+                }
+            }
 
             if (!response.ok) {
                 const text = await response.text();

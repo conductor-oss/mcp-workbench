@@ -19,11 +19,12 @@ import { ToolTester } from '@/components/ToolTester';
 import { PromptTester } from '@/components/PromptTester';
 import { LogViewer } from '@/components/LogViewer';
 import { ChangelogViewer } from '@/components/ChangelogViewer';
+import { LearnMCP } from '@/components/LearnMCP';
 import { OAuthCallbackHandler } from "@/components/OAuthCallbackHandler";
-import { Database, Wrench, MessageSquare, Terminal, Github, Slack, Sparkles } from 'lucide-react';
+import { Database, Wrench, MessageSquare, Terminal, Github, Slack, Sparkles, GraduationCap } from 'lucide-react';
 
 function App() {
-  const [activeTab, setActiveTab] = useState<'resources' | 'tools' | 'prompts' | 'changelog'>('resources');
+  const [activeTab, setActiveTab] = useState<'resources' | 'tools' | 'prompts' | 'changelog' | 'learn'>('resources');
   const [showLogs, setShowLogs] = useState(true);
 
   return (
@@ -76,7 +77,7 @@ function App() {
         <div className="flex-1 flex overflow-hidden">
 
           {/* Sidebar: Connection Manager */}
-          <aside className="w-80 border-r border-solar-base2 bg-solar-base2/30 flex flex-col shrink-0">
+          <aside className="w-96 border-r border-solar-base2 bg-solar-base2/30 flex flex-col shrink-0">
             <div className="p-4 overflow-y-auto flex-1">
               <ConnectionManager />
             </div>
@@ -109,6 +110,13 @@ function App() {
               <div className="flex-1" />
 
               <button
+                onClick={() => setActiveTab('learn')}
+                className={`flex items-center gap-2 h-full px-2 border-b-2 transition-colors text-sm font-medium ${activeTab === 'learn' ? 'border-solar-blue text-solar-blue' : 'border-transparent text-solar-base01 hover:text-solar-blue'}`}
+              >
+                <GraduationCap className="w-4 h-4" /> Learn MCP
+              </button>
+
+              <button
                 onClick={() => setActiveTab('changelog')}
                 className={`flex items-center gap-2 h-full px-2 border-b-2 transition-colors text-sm font-medium ${activeTab === 'changelog' ? 'border-solar-magenta text-solar-magenta' : 'border-transparent text-solar-base01 hover:text-solar-magenta'}`}
               >
@@ -130,6 +138,7 @@ function App() {
               {activeTab === 'resources' && <ResourceExplorer />}
               {activeTab === 'tools' && <ToolTester />}
               {activeTab === 'prompts' && <PromptTester />}
+              {activeTab === 'learn' && <LearnMCP />}
               {activeTab === 'changelog' && <ChangelogViewer />}
             </div>
 

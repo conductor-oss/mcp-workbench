@@ -56,11 +56,19 @@ export class InspectableTransport implements Transport {
     }
 
     get onclose(): (() => void) | undefined {
-        return this._transport.onclose;
+        return (this._transport as any).onclose;
     }
 
     set onclose(callback: (() => void) | undefined) {
-        this._transport.onclose = callback;
+        (this._transport as any).onclose = callback;
+    }
+
+    get onUnauthorized(): (() => void) | undefined {
+        return (this._transport as any).onUnauthorized;
+    }
+
+    set onUnauthorized(callback: (() => void) | undefined) {
+        (this._transport as any).onUnauthorized = callback;
     }
 
     get onerror(): ((error: Error) => void) | undefined {
