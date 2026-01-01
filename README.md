@@ -6,7 +6,7 @@ A powerful, visual tool for debugging and testing [Model Context Protocol (MCP)]
 
 ## 🚀 Features
 
-- **Streamable HTTP Support**: Strictly adheres to the "Streamable HTTP" transport specification (POST-only, stateless).
+- **Streamable HTTP Support**: Strictly adheres to the "Streamable HTTP" transport specification.
 - **Protocol Inspector**: Real-time log viewer for all JSON-RPC messages, including `initialize` handshake and capability discovery.
 - **Tools Tester**: Execute tools with dynamically generated forms based on their JSON Schema.
 - **Resource Explorer**: Inspect and browse server-side resources.
@@ -15,7 +15,6 @@ A powerful, visual tool for debugging and testing [Model Context Protocol (MCP)]
     - **OAuth 2.0**: Full Authorization Code flow with popup-based authentication.
     - **API Keys**: Custom header support for secure connections.
 - **Multi-Server Management**: Save and manage multiple server configurations.
-- **Solarized Light Theme**: A clean, premium aesthetic designed for long debugging sessions.
 
 ## 🛠️ Getting Started
 
@@ -42,7 +41,12 @@ A powerful, visual tool for debugging and testing [Model Context Protocol (MCP)]
    npm run dev
    ```
 
-4. Open your browser to `http://localhost:5173`.
+4. (Optional) Add license headers to new files:
+   ```bash
+   npm run add-license
+   ```
+
+5. Open your browser to `http://localhost:5173`.
 
 ## 📡 Transport & Connectivity
 
@@ -61,14 +65,6 @@ ngrok http 8080
 ```
 
 The workbench automatically handles bypass headers for ngrok (`ngrok-skip-browser-warning: true`).
-
-## 🏗️ Architecture
-
-- **React + TypeScript**: Functional components with robust type safety.
-- **Tailwind CSS**: Modern styling using a curated Solarized color palette.
-- **Zod**: Runtime validation for protocol messages and capability schemas.
-- **Context API**: Centralized state management for connections and protocol logs.
-- **Custom Transport**: A custom `DirectClientTransport` implementation that bypasses standard SSE for efficient POST-only communication.
 
 ## 🤝 Contributing
 
