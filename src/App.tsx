@@ -18,11 +18,12 @@ import { ResourceExplorer } from '@/components/ResourceExplorer';
 import { ToolTester } from '@/components/ToolTester';
 import { PromptTester } from '@/components/PromptTester';
 import { LogViewer } from '@/components/LogViewer';
+import { ChangelogViewer } from '@/components/ChangelogViewer';
 import { OAuthCallbackHandler } from "@/components/OAuthCallbackHandler";
-import { Database, Wrench, MessageSquare, Terminal, Github, Slack } from 'lucide-react';
+import { Database, Wrench, MessageSquare, Terminal, Github, Slack, Sparkles } from 'lucide-react';
 
 function App() {
-  const [activeTab, setActiveTab] = useState<'resources' | 'tools' | 'prompts'>('resources');
+  const [activeTab, setActiveTab] = useState<'resources' | 'tools' | 'prompts' | 'changelog'>('resources');
   const [showLogs, setShowLogs] = useState(true);
 
   return (
@@ -108,6 +109,15 @@ function App() {
               <div className="flex-1" />
 
               <button
+                onClick={() => setActiveTab('changelog')}
+                className={`flex items-center gap-2 h-full px-2 border-b-2 transition-colors text-sm font-medium ${activeTab === 'changelog' ? 'border-solar-magenta text-solar-magenta' : 'border-transparent text-solar-base01 hover:text-solar-magenta'}`}
+              >
+                <Sparkles className="w-4 h-4" /> What's new
+              </button>
+
+              <div className="w-px h-4 bg-solar-base2 mx-2" />
+
+              <button
                 onClick={() => setShowLogs(!showLogs)}
                 className={`flex items-center gap-2 text-xs font-medium px-2 py-1 rounded transition-colors ${showLogs ? 'bg-solar-base2 text-solar-base01' : 'text-solar-base1 hover:text-solar-base00'}`}
               >
@@ -120,6 +130,7 @@ function App() {
               {activeTab === 'resources' && <ResourceExplorer />}
               {activeTab === 'tools' && <ToolTester />}
               {activeTab === 'prompts' && <PromptTester />}
+              {activeTab === 'changelog' && <ChangelogViewer />}
             </div>
 
             {/* Bottom Panel: Logs */}

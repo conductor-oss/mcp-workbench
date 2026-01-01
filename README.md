@@ -83,6 +83,24 @@ http://localhost:5173
 
 ---
 
+## Deployment
+
+### AWS Hosting
+The workbench is optimized for **AWS Amplify**. See the [Deployment Guide](deployment.md) for detailed setup and DNS instructions.
+
+### Automatic CI/CD
+Pushing to the `main` branch triggers the GitHub Action in `.github/workflows/deploy.yml`.
+
+### Manual Local Deployment
+For debugging or rapid testing, you can deploy directly from your machine:
+```bash
+export AWS_AMPLIFY_APP_ID="your_app_id"
+./deploy.sh
+```
+*(Requires AWS CLI and configured credentials)*
+
+---
+
 ## Transport Details (Important)
 
 MCP Workbench only supports **Streamable HTTP**.
