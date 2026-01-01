@@ -1,73 +1,80 @@
-# React + TypeScript + Vite
+# MCP Workbench
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A powerful, visual tool for debugging and testing [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) servers. Built with React + TypeScript + Vite, it provides a premium developer experience for inspecting resources, executing tools, and monitoring protocol traffic in real-time.
 
-Currently, two official plugins are available:
+![MCP Workbench Interface](https://modelcontextprotocol.io/img/mcp-logo.svg)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## 🚀 Features
 
-## React Compiler
+- **Streamable HTTP Support**: Strictly adheres to the "Streamable HTTP" transport specification (POST-only, stateless).
+- **Protocol Inspector**: Real-time log viewer for all JSON-RPC messages, including `initialize` handshake and capability discovery.
+- **Tools Tester**: Execute tools with dynamically generated forms based on their JSON Schema.
+- **Resource Explorer**: Inspect and browse server-side resources.
+- **Prompt Tester**: View and test available prompts.
+- **Advanced Authentication**:
+    - **OAuth 2.0**: Full Authorization Code flow with popup-based authentication.
+    - **API Keys**: Custom header support for secure connections.
+- **Multi-Server Management**: Save and manage multiple server configurations.
+- **Solarized Light Theme**: A clean, premium aesthetic designed for long debugging sessions.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## 🛠️ Getting Started
 
-## Expanding the ESLint configuration
+### Prerequisites
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+- Node.js (v18+)
+- npm or yarn
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+### Installation
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/conductoross/mcp-workbench.git
+   cd mcp-workbench
+   ```
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+
+3. Start the development server:
+   ```bash
+   npm run dev
+   ```
+
+4. Open your browser to `http://localhost:5173`.
+
+## 📡 Transport & Connectivity
+
+This workbench is designed specifically for **Streamable HTTP**. 
+
+- **Method**: Every message is sent via `HTTP POST`.
+- **Stateless**: The client manages the `MCP-Session-Id` header (captured from the server's initialization response).
+- **CORS**: Ensure your MCP server is configured to allow requests from the workbench origin.
+
+### Local Debugging with ngrok
+
+If you are testing a local MCP server, we recommend using `ngrok` to expose it:
+
+```bash
+ngrok http 8080
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+The workbench automatically handles bypass headers for ngrok (`ngrok-skip-browser-warning: true`).
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## 🏗️ Architecture
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+- **React + TypeScript**: Functional components with robust type safety.
+- **Tailwind CSS**: Modern styling using a curated Solarized color palette.
+- **Zod**: Runtime validation for protocol messages and capability schemas.
+- **Context API**: Centralized state management for connections and protocol logs.
+- **Custom Transport**: A custom `DirectClientTransport` implementation that bypasses standard SSE for efficient POST-only communication.
+
+## 🤝 Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+## 📄 License
+
+MIT License.
+
