@@ -1,0 +1,39 @@
+# MCP Workbench
+
+> A visual debugger and test client for Model Context Protocol (MCP) servers.
+
+## Docs
+
+- [README](https://github.com/conductor-oss/mcp-workbench/blob/main/README.md): Full documentation and setup guide
+- [AGENTS.md](https://github.com/conductor-oss/mcp-workbench/blob/main/AGENTS.md): Instructions for AI agents using this codebase
+
+## What This Tool Does
+
+MCP Workbench lets you connect to an MCP server over Streamable HTTP, inspect protocol traffic, explore resources, and execute tools with zero guesswork. It's built for developers who want fast feedback and full visibility into what their server is actually doing.
+
+## Features
+
+- **Streamable HTTP Client**: Implements the MCP Streamable HTTP transport exactly
+- **Protocol Inspector**: Live JSON-RPC message log with real-time traffic inspection
+- **Tool Runner**: Auto-generated input forms from JSON Schema, execute tools and inspect raw responses
+- **Resource Explorer**: Browse and inspect server-exposed resources
+- **Prompt Viewer**: List and test available prompts
+- **Authentication**: OAuth 2.0 (Authorization Code flow) and API key support
+
+## Use Cases
+
+- Debugging MCP servers during development
+- Verifying protocol compliance (handshake, capabilities, message flow)
+- Manually testing tools, prompts, and resources
+- Inspecting raw JSON-RPC traffic in real time
+
+## Getting Started
+
+1. Clone: `git clone https://github.com/conductor-oss/mcp-workbench.git`
+2. Install: `npm install`
+3. Run: `npm run dev`
+4. Open: `http://localhost:5173`
+
+## Optional
+
+- [LICENSE](https://github.com/conductor-oss/mcp-workbench/blob/main/LICENSE): MIT License

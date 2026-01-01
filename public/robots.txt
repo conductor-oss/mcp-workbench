@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+
+# LLM Discovery
+# See /llms.txt for AI-friendly documentation
+
+Sitemap: https://mcp-workbench.ai/sitemap.xml
