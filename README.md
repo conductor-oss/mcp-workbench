@@ -1,76 +1,138 @@
+Here’s a tightened, developer-first rewrite. Clear structure, concrete language, no marketing fluff.
+
+---
+
 # MCP Workbench
 
-A powerful, visual tool for debugging and testing [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) servers. Built with React + TypeScript + Vite, it provides a premium developer experience for inspecting resources, executing tools, and monitoring protocol traffic in real-time.
+A visual debugger and test client for **Model Context Protocol (MCP)** servers.
+
+MCP Workbench lets you connect to an MCP server over **Streamable HTTP**, inspect protocol traffic, explore resources, and execute tools with zero guesswork. It’s built for developers who want fast feedback and full visibility into what their server is actually doing.
+
+Built with **React, TypeScript, and Vite**.
 
 ![MCP Workbench Interface](https://modelcontextprotocol.io/img/mcp-logo.svg)
 
-## 🚀 Features
+---
 
-- **Streamable HTTP Support**: Strictly adheres to the "Streamable HTTP" transport specification.
-- **Protocol Inspector**: Real-time log viewer for all JSON-RPC messages, including `initialize` handshake and capability discovery.
-- **Tools Tester**: Execute tools with dynamically generated forms based on their JSON Schema.
-- **Resource Explorer**: Inspect and browse server-side resources.
-- **Prompt Tester**: View and test available prompts.
-- **Advanced Authentication**:
-    - **OAuth 2.0**: Full Authorization Code flow with popup-based authentication.
-    - **API Keys**: Custom header support for secure connections.
-- **Multi-Server Management**: Save and manage multiple server configurations.
+## What This Tool Is For
 
-## 🛠️ Getting Started
+* Debugging MCP servers during development
+* Verifying protocol compliance (handshake, capabilities, message flow)
+* Manually testing tools, prompts, and resources
+* Inspecting raw JSON-RPC traffic in real time
 
-### Prerequisites
+If you’re building or maintaining an MCP server, this is your control panel.
 
-- Node.js (v18+)
-- npm or yarn
+---
 
-### Installation
+## Features
 
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/conductoross/mcp-workbench.git
-   cd mcp-workbench
-   ```
+* **Streamable HTTP Client**
 
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
+  * Implements the MCP *Streamable HTTP* transport exactly
+  * All messages sent via `POST`
+  * Session handling via `MCP-Session-Id`
 
-3. Start the development server:
-   ```bash
-   npm run dev
-   ```
+* **Protocol Inspector**
 
-4. (Optional) Add license headers to new files:
-   ```bash
-   npm run add-license
-   ```
+  * Live JSON-RPC message log
+  * See `initialize`, capability discovery, requests, and responses as they happen
 
-5. Open your browser to `http://localhost:5173`.
+* **Tool Runner**
 
-## 📡 Transport & Connectivity
+  * Auto-generated input forms from JSON Schema
+  * Execute tools and inspect raw responses
 
-This workbench is designed specifically for **Streamable HTTP**. 
+* **Resource Explorer**
 
-- **Method**: Every message is sent via `HTTP POST`.
-- **Stateless**: The client manages the `MCP-Session-Id` header (captured from the server's initialization response).
-- **CORS**: Ensure your MCP server is configured to allow requests from the workbench origin.
+  * Browse and inspect server-exposed resources
 
-### Local Debugging with ngrok
+* **Prompt Viewer**
 
-If you are testing a local MCP server, we recommend using `ngrok` to expose it:
+  * List and test available prompts
+
+* **Authentication Support**
+
+  * OAuth 2.0 (Authorization Code flow with popup)
+  * API key support via custom headers
+
+* **Multi-Server Configs**
+
+  * Save, switch, and reuse multiple MCP server connections
+
+---
+
+## Getting Started
+
+### Requirements
+
+* Node.js **18+**
+* npm or yarn
+
+### Setup
+
+```bash
+git clone https://github.com/conductoross/mcp-workbench.git
+cd mcp-workbench
+npm install
+npm run dev
+```
+
+Open:
+
+```
+http://localhost:5173
+```
+
+---
+
+## Transport Details (Important)
+
+MCP Workbench only supports **Streamable HTTP**.
+
+* **Transport**: HTTP `POST` only
+* **State**: Client-managed
+* **Sessions**:
+
+  * The server returns `MCP-Session-Id` during initialization
+  * The client automatically includes it on subsequent requests
+
+### CORS
+
+Your MCP server **must** allow cross-origin requests from the Workbench origin. If CORS is misconfigured, requests will fail silently in the browser.
+
+---
+
+## Local MCP Servers
+
+If your MCP server is running locally, expose it with `ngrok`:
 
 ```bash
 ngrok http 8080
 ```
 
-The workbench automatically handles bypass headers for ngrok (`ngrok-skip-browser-warning: true`).
+Paste the public ngrok URL into MCP Workbench.
 
-## 🤝 Contributing
+The client automatically sets:
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+```
+ngrok-skip-browser-warning: true
+```
 
-## 📄 License
+No extra configuration needed.
 
-MIT License.
+---
 
+## Contributing
+
+Pull requests are welcome.
+
+Keep changes focused, readable, and aligned with MCP specifications.
+
+---
+
+## License
+
+[MIT License](LICENSE)
+
+---
