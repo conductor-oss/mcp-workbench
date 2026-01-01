@@ -1,6 +1,3 @@
-Here’s a tightened, developer-first rewrite. Clear structure, concrete language, no marketing fluff.
-
----
 
 # MCP Workbench
 
