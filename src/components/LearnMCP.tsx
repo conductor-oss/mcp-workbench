@@ -70,7 +70,7 @@ export const LearnMCP: React.FC = () => {
                         <ArticleCard
                             title="Writing Your First Server"
                             description="A step-by-step guide to exposing local tools and data to AI models using the MCP SDK."
-                            link="https://modelcontextprotocol.io/docs/quickstart/server"
+                            link="https://modelcontextprotocol.io/docs/develop/build-server"
                         />
                         <ArticleCard
                             title="Protocol Specification"
