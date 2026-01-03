@@ -97,12 +97,6 @@ function App() {
             {/* Tabs / Toolbar */}
             <div className="h-10 border-b border-solar-base2 flex items-center px-4 gap-4 bg-solar-base2/10">
               <button
-                onClick={() => switchToTab('resources')}
-                className={`flex items-center gap-2 h-full px-2 border-b-2 transition-colors text-sm font-medium ${activeTab === 'resources' ? 'border-solar-blue text-solar-blue' : 'border-transparent text-solar-base01 hover:text-solar-blue'}`}
-              >
-                <Database className="w-4 h-4" /> Resources
-              </button>
-              <button
                 onClick={() => switchToTab('tools')}
                 className={`flex items-center gap-2 h-full px-2 border-b-2 transition-colors text-sm font-medium ${activeTab === 'tools' ? 'border-solar-blue text-solar-blue' : 'border-transparent text-solar-base01 hover:text-solar-blue'}`}
               >
@@ -119,6 +113,12 @@ function App() {
                 className={`flex items-center gap-2 h-full px-2 border-b-2 transition-colors text-sm font-medium ${activeTab === 'tasks' ? 'border-solar-blue text-solar-blue' : 'border-transparent text-solar-base01 hover:text-solar-blue'}`}
               >
                 <ClipboardList className="w-4 h-4" /> Tasks
+              </button>
+              <button
+                onClick={() => switchToTab('resources')}
+                className={`flex items-center gap-2 h-full px-2 border-b-2 transition-colors text-sm font-medium ${activeTab === 'resources' ? 'border-solar-blue text-solar-blue' : 'border-transparent text-solar-base01 hover:text-solar-blue'}`}
+              >
+                <Database className="w-4 h-4" /> Resources
               </button>
 
               <div className="flex-1" />
