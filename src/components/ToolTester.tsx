@@ -15,22 +15,22 @@ import React, { useEffect, useState } from 'react';
 import { useMCP } from '@/contexts/MCPContext';
 import { Button } from '@/components/ui/button';
 import { z } from 'zod';
-
-interface Tool {
-    name: string;
-    description?: string;
-    inputSchema: any;
-}
+import { DynamicForm } from './DynamicForm';
+import { CurlPreview } from './CurlPreview';
+import { Code, LayoutList } from 'lucide-react';
 
 export const ToolTester: React.FC = () => {
-    const { client, status } = useMCP();
-    const [tools, setTools] = useState<Tool[]>([]);
-    const [selectedTool, setSelectedTool] = useState<Tool | null>(null);
-    const [args, setArgs] = useState<string>('{}');
+    const { client, status, servers, activeServerId } = useMCP();
+    const [tools, setTools] = useState<any[]>([]);
+    const [selectedTool, setSelectedTool] = useState<any | null>(null);
+    const [args, setArgs] = useState("{}");
+    const [formValues, setFormValues] = useState<any>({});
+    const [inputMode, setInputMode] = useState<'form' | 'json'>('form');
     const [result, setResult] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
-    const [executing, setExecuting] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [curlCommand, setCurlCommand] = useState<string | null>(null);
+    const [listCurl, setListCurl] = useState<string | null>(null);
 
     useEffect(() => {
         if (status === 'connected' && client) {
@@ -47,6 +47,19 @@ export const ToolTester: React.FC = () => {
         setLoading(true);
         setError(null);
         try {
+            // Generate cURL for list
+            const currentServer = servers.find(s => s.id === activeServerId);
+            if (currentServer) {
+                const { generateCurlCommand, getHeadersForServer } = await import('@/lib/curlGenerator');
+                const headers = getHeadersForServer(currentServer);
+                const body = {
+                    jsonrpc: "2.0",
+                    method: "tools/list",
+                    id: 1
+                };
+                setListCurl(generateCurlCommand(currentServer.url, headers, body));
+            }
+
             console.log("[ToolTester] Requesting tools/list...");
             const result = await client.request(
                 { method: "tools/list" },
@@ -63,16 +76,30 @@ export const ToolTester: React.FC = () => {
         }
     };
 
-    const executeTool = async () => {
+    const handleRunTool = async () => {
         if (!client || !selectedTool) return;
-        setExecuting(true);
+
+        setLoading(true);
         setResult(null);
+        setError(null);
         try {
-            let parsedArgs = {};
-            try {
-                parsedArgs = JSON.parse(args);
-            } catch (e) {
-                throw new Error("Invalid JSON arguments");
+            const parsedArgs = JSON.parse(args);
+
+            // Generate cURL for debug
+            const currentServer = servers.find(s => s.id === activeServerId);
+            if (currentServer) {
+                const { generateCurlCommand, getHeadersForServer } = await import('@/lib/curlGenerator');
+                const headers = getHeadersForServer(currentServer);
+                const body = {
+                    jsonrpc: "2.0",
+                    method: "tools/call",
+                    params: {
+                        name: selectedTool.name,
+                        arguments: parsedArgs
+                    },
+                    id: 1
+                };
+                setCurlCommand(generateCurlCommand(currentServer.url, headers, body));
             }
 
             const res = await client.request(
@@ -83,13 +110,14 @@ export const ToolTester: React.FC = () => {
                         arguments: parsedArgs
                     }
                 },
-                z.any() // Relaxed validation for result
+                z.any()
             );
             setResult(JSON.stringify(res, null, 2));
         } catch (e: any) {
+            setError(e.message);
             setResult(`Error: ${e.message}`);
         } finally {
-            setExecuting(false);
+            setLoading(false);
         }
     };
 
@@ -113,6 +141,8 @@ export const ToolTester: React.FC = () => {
             {loading && <p className="text-solar-base1 text-sm">Loading tools...</p>}
             {error && <p className="text-solar-red text-sm">Error: {error}</p>}
 
+            {listCurl && <div className="mb-4"><CurlPreview command={listCurl} title="cURL Command (tools/list)" /></div>}
+
             {!loading && tools.length > 0 && (
                 <div className="space-y-4">
                     <div className="space-y-2">
@@ -124,6 +154,8 @@ export const ToolTester: React.FC = () => {
                                 const tool = tools.find(t => t.name === e.target.value);
                                 setSelectedTool(tool || null);
                                 setResult(null);
+                                setArgs("{}");
+                                setFormValues({});
                             }}
                         >
                             <option value="">-- Select a tool --</option>
@@ -138,24 +170,64 @@ export const ToolTester: React.FC = () => {
                             <p className="text-sm text-solar-base1">{selectedTool.description}</p>
 
                             <div className="space-y-2">
-                                <label className="text-sm font-medium text-solar-base00">Arguments (JSON)</label>
-                                <div className="relative">
-                                    <textarea
-                                        className="flex min-h-[100px] w-full rounded-md border border-solar-base1 bg-solar-base3 px-3 py-2 text-sm font-mono text-solar-base00 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-solar-blue"
-                                        value={args}
-                                        onChange={(e) => setArgs(e.target.value)}
-                                    />
+                                <div className="flex justify-between items-center">
+                                    <label className="text-sm font-medium text-solar-base00">Arguments</label>
+                                    <div className="flex items-center space-x-1 bg-solar-base2 rounded p-1">
+                                        <button
+                                            onClick={() => setInputMode('form')}
+                                            className={`p-1 rounded ${inputMode === 'form' ? 'bg-solar-base3 text-solar-blue shadow-sm' : 'text-solar-base1 hover:text-solar-base00'}`}
+                                            title="Form View"
+                                        >
+                                            <LayoutList className="w-4 h-4" />
+                                        </button>
+                                        <button
+                                            onClick={() => setInputMode('json')}
+                                            className={`p-1 rounded ${inputMode === 'json' ? 'bg-solar-base3 text-solar-blue shadow-sm' : 'text-solar-base1 hover:text-solar-base00'}`}
+                                            title="JSON View"
+                                        >
+                                            <Code className="w-4 h-4" />
+                                        </button>
+                                    </div>
                                 </div>
-                                <p className="text-xs text-solar-base1">
-                                    Expected schema: {JSON.stringify(selectedTool.inputSchema)}
-                                </p>
+
+                                {inputMode === 'form' ? (
+                                    <div className="border border-solar-base1 rounded-md p-4 bg-solar-base3">
+                                        <DynamicForm
+                                            schema={selectedTool.inputSchema}
+                                            value={formValues}
+                                            onChange={(newValues) => {
+                                                setFormValues(newValues);
+                                                // Sync to JSON string
+                                                setArgs(JSON.stringify(newValues, null, 2));
+                                            }}
+                                        />
+                                    </div>
+                                ) : (
+                                    <div className="relative">
+                                        <textarea
+                                            className="flex min-h-[200px] w-full rounded-md border border-solar-base1 bg-solar-base3 px-3 py-2 text-sm font-mono text-solar-base00 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-solar-blue"
+                                            value={args}
+                                            onChange={(e) => {
+                                                setArgs(e.target.value);
+                                                try {
+                                                    setFormValues(JSON.parse(e.target.value));
+                                                } catch (e) {
+                                                    // Ignore parse errors while typing
+                                                }
+                                            }}
+                                        />
+                                        <p className="text-xs text-solar-base1 mt-1">
+                                            Edit raw JSON arguments directly.
+                                        </p>
+                                    </div>
+                                )}
                             </div>
 
                             <Button
-                                onClick={executeTool}
-                                disabled={executing}
+                                onClick={handleRunTool}
+                                disabled={loading}
                             >
-                                {executing ? 'Executing...' : 'Run Tool'}
+                                {loading ? 'Executing...' : 'Run Tool'}
                             </Button>
 
                             {result && (
@@ -166,6 +238,8 @@ export const ToolTester: React.FC = () => {
                                     </pre>
                                 </div>
                             )}
+
+                            {curlCommand && <CurlPreview command={curlCommand} />}
                         </div>
                     )}
                 </div>

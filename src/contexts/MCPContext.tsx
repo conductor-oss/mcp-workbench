@@ -31,7 +31,7 @@ interface MCPContextType {
     addServer: (server: ServerConfig) => void;
     updateServer: (server: ServerConfig) => void;
     removeServer: (id: string) => void;
-    connectToServer: (id: string) => Promise<void>;
+    connectToServer: (id: string, configOverride?: ServerConfig) => Promise<void>;
     reauthenticateServer: (id: string) => Promise<void>;
     disconnect: () => Promise<void>;
 }
@@ -97,8 +97,11 @@ export const MCPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setActiveServerId(null);
     }, []);
 
-    const connectToServer = useCallback(async (id: string) => {
-        const config = servers.find(s => s.id === id);
+    // Allows passing a config override (e.g. with fresh token before state update propagates)
+    const connectToServer = useCallback(async (id: string, configOverride?: ServerConfig) => {
+        const storedConfig = servers.find(s => s.id === id);
+        const config = configOverride || storedConfig;
+
         if (!config) {
             setError("Server configuration not found");
             return;
@@ -215,8 +218,8 @@ export const MCPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             };
             updateServer(updatedServer);
 
-            // Reconnect automatically
-            await connectToServer(id);
+            // Reconnect automatically with strict fresh config
+            await connectToServer(id, updatedServer);
         } catch (e: any) {
             console.error("Re-authentication failed", e);
             setError("Re-authentication failed: " + e.message);

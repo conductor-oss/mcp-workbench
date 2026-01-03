@@ -13,6 +13,8 @@
 
 import React, { useEffect, useState } from 'react';
 import { useMCP } from '@/contexts/MCPContext';
+import { Button } from '@/components/ui/button';
+import { CurlPreview } from './CurlPreview';
 import { z } from 'zod';
 
 interface Resource {
@@ -20,6 +22,8 @@ interface Resource {
     name: string;
     description?: string;
     mimeType?: string;
+    content?: string;
+    curl?: string;
 }
 
 const ListResourcesResultSchema = z.object({
@@ -32,10 +36,11 @@ const ListResourcesResultSchema = z.object({
 });
 
 export const ResourceExplorer: React.FC = () => {
-    const { client, status } = useMCP();
+    const { client, status, servers, activeServerId } = useMCP();
     const [resources, setResources] = useState<Resource[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [listCurl, setListCurl] = useState<string | null>(null);
 
     useEffect(() => {
         if (status === 'connected' && client) {
@@ -51,6 +56,19 @@ export const ResourceExplorer: React.FC = () => {
         setLoading(true);
         setError(null);
         try {
+            // Generate cURL
+            const currentServer = servers.find(s => s.id === activeServerId);
+            if (currentServer) {
+                const { generateCurlCommand, getHeadersForServer } = await import('@/lib/curlGenerator');
+                const headers = getHeadersForServer(currentServer);
+                const body = {
+                    jsonrpc: "2.0",
+                    method: "resources/list",
+                    id: 1
+                };
+                setListCurl(generateCurlCommand(currentServer.url, headers, body));
+            }
+
             // @ts-ignore - The SDK might have different method names, but based on spec it often has listResources or request("resources/list")
             // If the SDK follows 1.0, it might use client.request({ method: "resources/list" })
             // Or client.listResources() if strictly typed wrapper.
@@ -77,28 +95,69 @@ export const ResourceExplorer: React.FC = () => {
     //     return null;
     // }
 
+    const readResource = async (uri: string) => {
+        if (!client) return;
+        try {
+            // Generate cURL
+            const currentServer = servers.find(s => s.id === activeServerId);
+            if (currentServer) {
+                const { generateCurlCommand, getHeadersForServer } = await import('@/lib/curlGenerator');
+                const headers = getHeadersForServer(currentServer);
+                const body = {
+                    jsonrpc: "2.0",
+                    method: "resources/read",
+                    params: { uri },
+                    id: 1
+                };
+                const cmd = generateCurlCommand(currentServer.url, headers, body);
+
+                // Update specific resource with cURL command (requires state update)
+                setResources(prev => prev.map(r => r.uri === uri ? { ...r, curl: cmd } : r));
+            }
+
+            const result = await client.request(
+                { method: "resources/read", params: { uri } },
+                z.object({ contents: z.array(z.any()) })
+            );
+            console.log("Resource Read:", result);
+            // @ts-ignore
+            const content = result.contents[0];
+            const contentStr = content.text ? content.text : `[Binary: ${content.mimeType}]`;
+
+            setResources(prev => prev.map(r => r.uri === uri ? { ...r, content: contentStr } : r));
+
+        } catch (e: any) {
+            console.error("Failed to read resource", e);
+            setError(e.message);
+        }
+    };
+
     return (
         <div className="p-4 bg-solar-base2 rounded-lg shadow-sm">
             <div className="flex justify-between items-center mb-4">
                 <h2 className="text-lg font-semibold text-solar-base01">Resources</h2>
-                <button
-                    onClick={loadResources}
-                    className="text-sm text-solar-blue hover:text-solar-orange hover:underline transition-colors"
-                    disabled={loading}
-                >
-                    Refresh
-                </button>
+                <div className="flex gap-2">
+                    <button
+                        onClick={loadResources}
+                        className="text-sm text-solar-blue hover:text-solar-orange hover:underline transition-colors"
+                        disabled={loading}
+                    >
+                        Refresh
+                    </button>
+                </div>
             </div>
 
             {loading && <p className="text-solar-base1 text-sm">Loading resources...</p>}
             {error && <p className="text-solar-red text-sm">Error: {error}</p>}
 
+            {listCurl && <div className="mb-4"><CurlPreview command={listCurl} title="cURL Command (resources/list)" /></div>}
+
             {!loading && !error && resources.length === 0 && (
                 <p className="text-solar-base1 text-sm">No resources found.</p>
             )}
 
-            <div className="space-y-2">
-                {resources.map((resource) => (
+            <div className="space-y-4">
+                {resources.map((resource: any) => (
                     <div key={resource.uri} className="p-3 bg-solar-base3 rounded-md border border-solar-base2 text-sm hover:border-solar-base1 transition-colors">
                         <div className="flex justify-between items-start">
                             <span className="font-medium truncate mr-2 text-solar-base00">{resource.name}</span>
@@ -110,6 +169,22 @@ export const ResourceExplorer: React.FC = () => {
                         {resource.description && (
                             <p className="text-solar-base1 mt-1">{resource.description}</p>
                         )}
+
+                        <div className="mt-3 flex gap-2">
+                            <Button size="sm" variant="outline" onClick={() => readResource(resource.uri)}>
+                                Read Resource
+                            </Button>
+                        </div>
+
+                        {resource.content && (
+                            <div className="mt-2 p-2 bg-solar-base2 rounded border border-solar-base1">
+                                <pre className="text-xs whitespace-pre-wrap font-mono text-solar-base00 max-h-[200px] overflow-auto">
+                                    {resource.content}
+                                </pre>
+                            </div>
+                        )}
+
+                        {resource.curl && <CurlPreview command={resource.curl} />}
                     </div>
                 ))}
             </div>

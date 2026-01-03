@@ -38,13 +38,15 @@ export const ServerEditor: React.FC<ServerEditorProps> = ({ config, onSave, onCa
     const [clientId, setClientId] = useState(config.auth?.clientId || '');
     const [clientSecret, setClientSecret] = useState(config.auth?.clientSecret || '');
     const [scope, setScope] = useState(config.auth?.scope || '');
+    const [error, setError] = useState<string | null>(null);
+    const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
     const handleSave = () => {
         let headers = {};
         try {
             headers = JSON.parse(customHeaders);
         } catch (e) {
-            alert("Invalid JSON for Custom Headers");
+            setError("Invalid JSON for Custom Headers");
             return;
         }
 
@@ -78,14 +80,17 @@ export const ServerEditor: React.FC<ServerEditorProps> = ({ config, onSave, onCa
                 scope
             });
             setAuthToken(token);
+            setSuccessMessage("Authentication successful!");
+            setError(null);
         } catch (e: any) {
-            alert(e.message);
+            setError(e.message);
+            setSuccessMessage(null);
         }
     };
 
     const discoverEndpoints = async () => {
         if (!url) {
-            alert("Please enter a Server URL first to discover endpoints.");
+            setError("Please enter a Server URL first to discover endpoints.");
             return;
         }
 
@@ -97,7 +102,7 @@ export const ServerEditor: React.FC<ServerEditorProps> = ({ config, onSave, onCa
                 const u = new URL(url);
                 baseUrl = u.origin;
             } catch (e) {
-                alert("Invalid Server URL");
+                setError("Invalid Server URL");
                 return;
             }
 
@@ -111,16 +116,29 @@ export const ServerEditor: React.FC<ServerEditorProps> = ({ config, onSave, onCa
             if (config.authorization_endpoint) setAuthUrl(config.authorization_endpoint);
             if (config.token_endpoint) setTokenUrl(config.token_endpoint);
 
-            alert(`Discovery successful!\nAuth URL: ${config.authorization_endpoint}\nToken URL: ${config.token_endpoint}`);
+            setSuccessMessage(`Discovery successful!\nAuth URL: ${config.authorization_endpoint}\nToken URL: ${config.token_endpoint}`);
+            setError(null);
         } catch (e: any) {
             console.error(e);
-            alert("Discovery failed: " + e.message + "\nEnsure CORS is enabled on the server or manually enter URLs.");
+            setError("Discovery failed: " + e.message + "\nEnsure CORS is enabled on the server or manually enter URLs.");
+            setSuccessMessage(null);
         }
     };
 
     return (
         <div className="space-y-4 border p-4 rounded-md bg-solar-base2 border-solar-base1">
             <h3 className="font-medium text-solar-base01">Edit Server</h3>
+
+            {error && (
+                <div className="bg-solar-red/10 border border-solar-red text-solar-red p-2 rounded text-sm whitespace-pre-wrap">
+                    {error}
+                </div>
+            )}
+            {successMessage && (
+                <div className="bg-solar-green/10 border border-solar-green text-solar-green p-2 rounded text-sm whitespace-pre-wrap">
+                    {successMessage}
+                </div>
+            )}
 
             <div className="space-y-2">
                 <label className="text-xs text-solar-base1 uppercase font-bold tracking-wide">Name</label>

@@ -26,8 +26,10 @@ interface Prompt {
     }[];
 }
 
+import { CurlPreview } from './CurlPreview';
+
 export const PromptTester: React.FC = () => {
-    const { client, status } = useMCP();
+    const { client, status, servers, activeServerId } = useMCP();
     const [prompts, setPrompts] = useState<Prompt[]>([]);
     const [selectedPrompt, setSelectedPrompt] = useState<Prompt | null>(null);
     const [args, setArgs] = useState<Record<string, string>>({});
@@ -35,6 +37,8 @@ export const PromptTester: React.FC = () => {
     const [loading, setLoading] = useState(false);
     const [executing, setExecuting] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [curlCommand, setCurlCommand] = useState<string | null>(null);
+    const [listCurl, setListCurl] = useState<string | null>(null);
 
     useEffect(() => {
         if (status === 'connected' && client) {
@@ -50,6 +54,19 @@ export const PromptTester: React.FC = () => {
         setLoading(true);
         setError(null);
         try {
+            // Generate cURL
+            const currentServer = servers.find(s => s.id === activeServerId);
+            if (currentServer) {
+                const { generateCurlCommand, getHeadersForServer } = await import('@/lib/curlGenerator');
+                const headers = getHeadersForServer(currentServer);
+                const body = {
+                    jsonrpc: "2.0",
+                    method: "prompts/list",
+                    id: 1
+                };
+                setListCurl(generateCurlCommand(currentServer.url, headers, body));
+            }
+
             const result = await client.request(
                 { method: "prompts/list" },
                 z.object({ prompts: z.array(z.any()) })
@@ -67,7 +84,25 @@ export const PromptTester: React.FC = () => {
         if (!client || !selectedPrompt) return;
         setExecuting(true);
         setResult(null);
+        setError(null);
         try {
+            // Generate cURL
+            const currentServer = servers.find(s => s.id === activeServerId);
+            if (currentServer) {
+                const { generateCurlCommand, getHeadersForServer } = await import('@/lib/curlGenerator');
+                const headers = getHeadersForServer(currentServer);
+                const body = {
+                    jsonrpc: "2.0",
+                    method: "prompts/get",
+                    params: {
+                        name: selectedPrompt.name,
+                        arguments: args
+                    },
+                    id: 1
+                };
+                setCurlCommand(generateCurlCommand(currentServer.url, headers, body));
+            }
+
             const res = await client.request(
                 {
                     method: "prompts/get",
@@ -80,6 +115,7 @@ export const PromptTester: React.FC = () => {
             );
             setResult(JSON.stringify(res, null, 2));
         } catch (e: any) {
+            setError(e.message);
             setResult(`Error: ${e.message}`);
         } finally {
             setExecuting(false);
@@ -105,6 +141,8 @@ export const PromptTester: React.FC = () => {
 
             {loading && <p className="text-solar-base1 text-sm">Loading prompts...</p>}
             {error && <p className="text-solar-red text-sm">Error: {error}</p>}
+
+            {listCurl && <div className="mb-4"><CurlPreview command={listCurl} title="cURL Command (prompts/list)" /></div>}
 
             {!loading && prompts.length > 0 && (
                 <div className="space-y-4">
@@ -165,6 +203,8 @@ export const PromptTester: React.FC = () => {
                                     </pre>
                                 </div>
                             )}
+
+                            {curlCommand && <CurlPreview command={curlCommand} />}
                         </div>
                     )}
                 </div>

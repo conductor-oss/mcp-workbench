@@ -118,23 +118,19 @@ Your MCP server **must** allow cross-origin requests from the Workbench origin. 
 
 ---
 
-## Local MCP Servers
+### Local Stdio Servers (Node.js/Python)
 
-If your MCP server is running locally, expose it with `ngrok`:
+For security, browsers cannot directly spawn local processes. To connect the Workbench to a local MCP server running over Stdio (e.g. `node server.js`), use the included Bridge script:
 
-```bash
-ngrok http 8080
-```
+1.  Run the bridge with your command:
+    ```bash
+    node scripts/stdio-bridge.js "node my-server.js"
+    # or for Python
+    node scripts/stdio-bridge.js "uv run main.py"
+    ```
 
-Paste the public ngrok URL into MCP Workbench.
-
-The client automatically sets:
-
-```
-ngrok-skip-browser-warning: true
-```
-
-No extra configuration needed.
+2.  Copy the URL printed (e.g., `http://localhost:3001/mcp`)
+3.  In Workbench, select **Streamable HTTP** and paste the URL.
 
 ---
 

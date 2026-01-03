@@ -109,6 +109,7 @@ export class DirectClientTransport implements Transport {
             if (this.onerror) {
                 this.onerror(error);
             }
+            throw error; // Ensure send() promise rejects so Client knows it failed
         }
     }
 }

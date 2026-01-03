@@ -17,15 +17,23 @@ import { ConnectionManager } from '@/components/ConnectionManager';
 import { ResourceExplorer } from '@/components/ResourceExplorer';
 import { ToolTester } from '@/components/ToolTester';
 import { PromptTester } from '@/components/PromptTester';
+import { TaskManager } from '@/components/TaskManager';
 import { LogViewer } from '@/components/LogViewer';
 import { ChangelogViewer } from '@/components/ChangelogViewer';
 import { LearnMCP } from '@/components/LearnMCP';
 import { OAuthCallbackHandler } from "@/components/OAuthCallbackHandler";
-import { Database, Wrench, MessageSquare, Terminal, Github, Slack, Sparkles, GraduationCap } from 'lucide-react';
+import { Database, Wrench, MessageSquare, Terminal, Github, Slack, Sparkles, GraduationCap, ClipboardList } from 'lucide-react';
 
 function App() {
-  const [activeTab, setActiveTab] = useState<'resources' | 'tools' | 'prompts' | 'changelog' | 'learn'>('resources');
+  const [activeTab, setActiveTab] = useState<'resources' | 'tools' | 'prompts' | 'tasks' | 'changelog' | 'learn'>('resources');
   const [showLogs, setShowLogs] = useState(true);
+
+  const switchToTab = (tab: typeof activeTab) => {
+    setActiveTab(tab);
+    if (tab === 'learn' || tab === 'changelog') {
+      setShowLogs(false);
+    }
+  };
 
   return (
     <MCPProvider>
@@ -89,35 +97,41 @@ function App() {
             {/* Tabs / Toolbar */}
             <div className="h-10 border-b border-solar-base2 flex items-center px-4 gap-4 bg-solar-base2/10">
               <button
-                onClick={() => setActiveTab('resources')}
+                onClick={() => switchToTab('resources')}
                 className={`flex items-center gap-2 h-full px-2 border-b-2 transition-colors text-sm font-medium ${activeTab === 'resources' ? 'border-solar-blue text-solar-blue' : 'border-transparent text-solar-base01 hover:text-solar-blue'}`}
               >
                 <Database className="w-4 h-4" /> Resources
               </button>
               <button
-                onClick={() => setActiveTab('tools')}
+                onClick={() => switchToTab('tools')}
                 className={`flex items-center gap-2 h-full px-2 border-b-2 transition-colors text-sm font-medium ${activeTab === 'tools' ? 'border-solar-blue text-solar-blue' : 'border-transparent text-solar-base01 hover:text-solar-blue'}`}
               >
                 <Wrench className="w-4 h-4" /> Tools
               </button>
               <button
-                onClick={() => setActiveTab('prompts')}
+                onClick={() => switchToTab('prompts')}
                 className={`flex items-center gap-2 h-full px-2 border-b-2 transition-colors text-sm font-medium ${activeTab === 'prompts' ? 'border-solar-blue text-solar-blue' : 'border-transparent text-solar-base01 hover:text-solar-blue'}`}
               >
                 <MessageSquare className="w-4 h-4" /> Prompts
+              </button>
+              <button
+                onClick={() => switchToTab('tasks')}
+                className={`flex items-center gap-2 h-full px-2 border-b-2 transition-colors text-sm font-medium ${activeTab === 'tasks' ? 'border-solar-blue text-solar-blue' : 'border-transparent text-solar-base01 hover:text-solar-blue'}`}
+              >
+                <ClipboardList className="w-4 h-4" /> Tasks
               </button>
 
               <div className="flex-1" />
 
               <button
-                onClick={() => setActiveTab('learn')}
+                onClick={() => switchToTab('learn')}
                 className={`flex items-center gap-2 h-full px-2 border-b-2 transition-colors text-sm font-medium ${activeTab === 'learn' ? 'border-solar-blue text-solar-blue' : 'border-transparent text-solar-base01 hover:text-solar-blue'}`}
               >
                 <GraduationCap className="w-4 h-4" /> Learn MCP
               </button>
 
               <button
-                onClick={() => setActiveTab('changelog')}
+                onClick={() => switchToTab('changelog')}
                 className={`flex items-center gap-2 h-full px-2 border-b-2 transition-colors text-sm font-medium ${activeTab === 'changelog' ? 'border-solar-magenta text-solar-magenta' : 'border-transparent text-solar-base01 hover:text-solar-magenta'}`}
               >
                 <Sparkles className="w-4 h-4" /> What's new
@@ -138,6 +152,7 @@ function App() {
               {activeTab === 'resources' && <ResourceExplorer />}
               {activeTab === 'tools' && <ToolTester />}
               {activeTab === 'prompts' && <PromptTester />}
+              {activeTab === 'tasks' && <TaskManager />}
               {activeTab === 'learn' && <LearnMCP />}
               {activeTab === 'changelog' && <ChangelogViewer />}
             </div>
