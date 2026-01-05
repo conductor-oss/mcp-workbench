@@ -74,7 +74,7 @@ To connect the Workbench to a local MCP server running over Stdio (e.g. `node se
 
 ---
 
-# CORS Handling
+## CORS Handling
 
 Your MCP server **must** allow cross-origin requests from the Workbench origin. If CORS is misconfigured, requests will fail silently in the browser.
 
