@@ -14,9 +14,19 @@
 import React, { useState } from 'react';
 import { useMCP } from '@/contexts/MCPContext';
 import { Button } from '@/components/ui/button';
-import { ServerConfig, DEFAULT_SERVER_CONFIG } from '@/types';
+import { ServerConfig } from '@/types';
 import { ServerEditor } from './ServerEditor';
 import { Trash2, Edit2, Plus, Sparkles } from 'lucide-react';
+
+// Blank template for new servers (NOT the demo server defaults)
+const BLANK_SERVER_TEMPLATE: ServerConfig = {
+    id: '', // Will be generated on save
+    name: '',
+    url: '',
+    transportType: 'http-direct',
+    auth: { type: 'none' },
+    customHeaders: {}
+};
 
 export const ConnectionManager: React.FC<{ onShowGettingStarted?: () => void }> = ({ onShowGettingStarted }) => {
     const { status, error, isAuthRequired, servers, activeServerId, connectToServer, reauthenticateServer, disconnect, addServer, updateServer, removeServer } = useMCP();
@@ -44,12 +54,13 @@ export const ConnectionManager: React.FC<{ onShowGettingStarted?: () => void }> 
     if (editingServer || isCreating) {
         return (
             <ServerEditor
-                config={editingServer || DEFAULT_SERVER_CONFIG}
+                config={editingServer || BLANK_SERVER_TEMPLATE}
                 onSave={handleSave}
                 onCancel={() => { setEditingServer(null); setIsCreating(false); }}
             />
         );
     }
+
 
     return (
         <div className="space-y-4">
